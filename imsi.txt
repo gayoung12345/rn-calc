@@ -1,0 +1,59 @@
+<Button
+                    title="1"
+                    onPress={() => {
+                        setResult(prevState => {
+                            return prevState * 10;
+                        });
+                        setResult(prevState => {
+                            return prevState + 1;
+                        });
+                    }}
+                    buttonStyle={styles.button}
+                    buttonType={ButtonTypes.NUMBER}
+                />
+                <Button
+                    title="2"
+                    onPress={() => {
+                        setResult(prevState => {
+                            return prevState * 10;
+                        });
+                        setResult(prevState => {
+                            return prevState + 2;
+                        });
+                    }}
+                    buttonStyle={styles.button}
+                    buttonType={ButtonTypes.NUMBER}
+                />
+                <Button
+                    title="3"
+                    onPress={() => {
+                        setResult(prevState => {
+                            return prevState * 10;
+                        });
+                        setResult(prevState => {
+                            return prevState + 3;
+                        });
+                    }}
+                    buttonStyle={styles.button}
+                    buttonType={ButtonTypes.NUMBER}
+                />
+                <View style={{ height: 10 }} />
+                {/* view 는 div와 같다 */}
+                <Button
+                    title="+"
+                    onPress={() => setResult(result + 1)}
+                    buttonStyle={styles.button}
+                    buttonType={ButtonTypes.NUMBER}
+                />
+                <Button
+                    title="-"
+                    onPress={() => setResult(result + 1)}
+                    buttonStyle={styles.button}
+                    buttonType={ButtonTypes.NUMBER}
+                />
+                <Button
+                    title="="
+                    onPress={() => setResult(0)}
+                    buttonStyle={styles.button}
+                    buttonType={ButtonTypes.OPERATOR}
+                />
