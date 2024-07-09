@@ -1,205 +1,187 @@
+import React, { useState } from "react";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Button, { ButtonTypes } from "@/components/Button";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
-
-// 기호
-const Operators = {
-  CLEAR: "C",
-  PLUS: "+",
-  MINUS: "-",
-  MULTIPLE: "*",
-  DIVISION: "/",
-  EQUAL: "=",
-};
 
 const Index = () => {
+  const { width: windowWidth } = useWindowDimensions();
+  const btnWidth = (windowWidth - 5) / 4; // 4칸 쓸 거라서 4로 나눔
+
   const [result, setResult] = useState<number>(0);
-  const [formula, setFormula] = useState<(string | number)[]>([]);
+  const [formula, setFormula] = useState<string>("");
+  const [pointCheck, setPointCheck] = useState<boolean>(true);
+  const [operatorCheck, setOperatorCheck] = useState<boolean>(true);
 
-  // 가로 길이
-  const windowWidth = useWindowDimensions().width;
-  const btnWidth = (windowWidth - 5) / 4;
+  const Operators = {
+    CLEAR: "C",
+    PLUS: "+",
+    MULTY: "*",
+    DIVIDE: "/",
+    DOT: ".",
+    MINUS: "-",
+    EQUAL: "=",
+  };
 
-  // 숫자를 눌렀을 경우
-  const onPressNumber = (number: number) => {
-    const last = formula[formula.length - 1];
-    if (isNaN(last)) {
-      setResult(number);
-      setFormula((prev) => [...prev, number]);
-    } else {
-      const newNumber = (last ?? 0) * 10 + number;
-      setResult(newNumber);
-      setFormula((prev) => {
-        prev.pop();
-        return [...prev, newNumber];
-      });
+  const getNumber = (number: string) => {
+    console.log(number);
+    setFormula((prev) => prev + number);
+    setOperatorCheck(true);
+  };
+
+  const getOperator = (oper: string) => {
+    console.log(oper);
+    // check
+    if (operatorCheck) {
+      setFormula((prev) => prev + oper);
+      setOperatorCheck(false);
     }
   };
 
-  // 연산
+  const getPoint = (point: string) => {
+    console.log(point);
+    if (formula.length === 0) setOperatorCheck(false);
+    // check
+    if (pointCheck) {
+      setFormula((prev) => prev + point);
+      setPointCheck(false);
+    }
+  };
+
+  const delNum = () => {
+    console.log("del");
+    let str = String(formula).slice(0, -1);
+    setFormula(str);
+    setPointCheck(true);
+  };
+
+  const allClear = () => {
+    console.log("ac");
+    setResult(0);
+    setFormula("");
+    setPointCheck(true);
+  };
+
   const calculate = () => {
-    let calculatedNumber = formula[0] as number; // 이전 결과값을 가져옴
-    let operator = "";
-    let tempResult = calculatedNumber;
-
-    for (let i = 1; i < formula.length; i++) {
-      const value = formula[i];
-      if (typeof value === "string") {
-        operator = value;
-      } else if (typeof value === "number") {
-        if (operator === Operators.PLUS) {
-          tempResult += value;
-        } else if (operator === Operators.MINUS) {
-          tempResult -= value;
-        } else if (operator === Operators.MULTIPLE) {
-          tempResult *= value;
-        } else if (operator === Operators.DIVISION) {
-          tempResult /= value;
-        }
+    console.log("cal");
+    try {
+      const evalResult = eval(formula);
+      if (isNaN(evalResult)) {
+        setResult(0);
+      } else if (evalResult === Infinity) {
+        alert("0으로 나눌 수 없습니다.");
+        setResult(0);
+      } else {
+        setResult(evalResult);
       }
-    }
-
-    setResult(tempResult);
-    setFormula([]);
-    setFormula([tempResult]);
-  };
-
-  // 기호를 눌렀을 경우
-  const onPressOperator = (operator: string) => {
-    switch (operator) {
-      case Operators.CLEAR:
-        setFormula([]); // 초기화 버튼 처리: 수식 초기화
-        setResult(0); // 초기화 버튼 처리: 결과 초기화
-        return;
-
-      case Operators.EQUAL:
-        calculate(); // '=' 버튼 처리: 현재 수식으로 계산 수행
-        return;
-
-      default:
-        // 연산자 추가 처리
-        if (formula.length === 0 || isNaN(formula[formula.length - 1])) {
-          return; // 수식이 비어있거나 마지막 요소가 숫자가 아닌 경우 처리하지 않음
-        }
-        setFormula((prev) => [...prev, operator]); // 연산자를 수식에 추가
-        return;
+    } catch (error) {
+      console.error(error);
+      setResult(0);
     }
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <View style={styles.formulaContainer}>
-        <Text style={{ color: "white" }}>{formula}</Text>
+        <Text style={styles.text2}>{formula}</Text>
       </View>
       <View style={styles.resultContainer}>
         <Text style={styles.text}>{result.toLocaleString("KR-ko")}</Text>
       </View>
-      <View style={{ height: 10, backgroundColor: "#ffffff" }}></View>
+
+      <View style={{ height: 3, backgroundColor: "#aaaaaa" }}></View>
 
       <View style={styles.buttonPad}>
         <View style={styles.topContainer}>
           <Button
-            title="C"
-            onPress={() => onPressOperator(Operators.CLEAR)}
-            buttonStyle={{
-              width: btnWidth,
-              height: btnWidth,
-              marginBottom: 1,
-            }}
+            title="AC"
+            onPress={allClear}
             buttonType={ButtonTypes.OPERATOR}
+            buttonStyle={[styles.button, { width: btnWidth, height: btnWidth }]}
+          />
+          <Button
+            title="Del"
+            onPress={delNum}
+            buttonType={ButtonTypes.OPERATOR}
+            buttonStyle={[styles.button, { width: btnWidth, height: btnWidth }]}
           />
           <Button
             title="/"
-            onPress={() => onPressOperator(Operators.DIVISION)}
-            buttonStyle={{
-              width: btnWidth,
-              height: btnWidth,
-              marginBottom: 1,
-            }}
+            onPress={() => getOperator("/")}
             buttonType={ButtonTypes.OPERATOR}
+            buttonStyle={[styles.button, { width: btnWidth, height: btnWidth }]}
           />
           <Button
             title="*"
-            onPress={() => onPressOperator(Operators.MULTIPLE)}
-            buttonStyle={{
-              width: btnWidth,
-              height: btnWidth,
-              marginBottom: 1,
-            }}
+            onPress={() => getOperator("*")}
             buttonType={ButtonTypes.OPERATOR}
-          />
-          <Button
-            title="-"
-            onPress={() => onPressOperator(Operators.MINUS)}
-            buttonStyle={{
-              width: btnWidth,
-              height: btnWidth,
-              marginBottom: 1,
-            }}
-            buttonType={ButtonTypes.OPERATOR}
+            buttonStyle={[styles.button, { width: btnWidth, height: btnWidth }]}
           />
         </View>
         <View style={styles.buttonContainer}>
           <View style={styles.leftArea}>
             <View style={styles.numberArea}>
-              {/* 숫자버튼 */}
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                 <Button
                   key={num}
                   title={num.toString()}
-                  onPress={() => onPressNumber(num)}
-                  buttonStyle={{
-                    width: btnWidth,
-                    height: btnWidth,
-                    marginBottom: 1,
-                  }}
+                  onPress={() => getNumber(num.toString())}
                   buttonType={ButtonTypes.NUMBER}
+                  buttonStyle={[
+                    styles.button,
+                    { width: btnWidth, height: btnWidth },
+                  ]}
                 />
               ))}
             </View>
-            <View style={styles.buttomArea}>
-              {/* 0, = 버튼 */}
+            <View style={styles.bottomArea}>
               <Button
                 title="0"
-                onPress={() => onPressNumber(0)}
-                buttonStyle={{
-                  width: btnWidth * 2 + 1,
-                  height: btnWidth,
-                  marginTop: 1,
-                }}
+                onPress={() => getNumber("0")}
                 buttonType={ButtonTypes.NUMBER}
+                buttonStyle={[
+                  styles.button,
+                  { width: btnWidth * 2, height: btnWidth },
+                ]}
               />
               <Button
                 title="."
-                onPress={() => onPressOperator(Operators.EQUAL)}
-                buttonStyle={{
-                  width: btnWidth,
-                  height: btnWidth,
-                  marginTop: 1,
-                }}
-                buttonType={ButtonTypes.OPERATOR}
+                onPress={() => getPoint(".")}
+                buttonType={ButtonTypes.NUMBER}
+                buttonStyle={[
+                  styles.button,
+                  { width: btnWidth, height: btnWidth },
+                ]}
               />
             </View>
           </View>
           <View style={styles.rightArea}>
-            {/* 연산버튼 */}
+            <Button
+              title="-"
+              onPress={() => getOperator("-")}
+              buttonType={ButtonTypes.OPERATOR}
+              buttonStyle={[
+                styles.button,
+                { width: btnWidth, height: btnWidth },
+              ]}
+            />
             <Button
               title="+"
-              onPress={() => onPressOperator(Operators.PLUS)}
-              buttonStyle={{
-                width: btnWidth,
-                height: btnWidth * 2 + 1,
-                marginBottom: 1,
-              }}
+              onPress={() => getOperator("+")}
               buttonType={ButtonTypes.OPERATOR}
+              buttonStyle={[
+                styles.button,
+                { width: btnWidth, height: btnWidth },
+              ]}
             />
             <Button
               title="="
-              onPress={() => onPressOperator(Operators.EQUAL)}
-              buttonStyle={{ width: btnWidth, height: btnWidth * 2 + 1 }}
+              onPress={calculate}
               buttonType={ButtonTypes.OPERATOR}
+              buttonStyle={[
+                styles.button,
+                { width: btnWidth, height: btnWidth * 2 - 5 },
+              ]}
             />
           </View>
         </View>
@@ -211,39 +193,42 @@ const Index = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "column",
     justifyContent: "center",
     alignItems: "stretch",
   },
   formulaContainer: {
     backgroundColor: "#000000",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
     padding: 5,
   },
   resultContainer: {
+    backgroundColor: "#000000",
     flex: 1,
-    backgroundColor: "#333333",
     justifyContent: "flex-end",
     alignItems: "flex-end",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    backgroundColor: "#a5b4fc",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 1,
-  },
-  button: {
-    width: 70,
-    height: 100,
-  },
-  text: {
-    fontSize: 60,
-    color: "#ff99ff",
+    padding: 10,
     paddingHorizontal: 15,
     paddingVertical: 30,
   },
+  buttonPad: {
+    flexDirection: "column",
+    backgroundColor: "#000000",
+    paddingTop: 1,
+    paddingBottom: 50,
+  },
+  topContainer: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+  },
   leftArea: {
-    width: "75%",
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "space-evenly",
   },
   rightArea: {
     flexDirection: "column",
@@ -255,19 +240,23 @@ const styles = StyleSheet.create({
     flexWrap: "wrap-reverse",
     justifyContent: "space-evenly",
   },
-  buttomArea: {
+  bottomArea: {
     flexDirection: "row",
     justifyContent: "space-evenly",
   },
-  buttonPad: {
-    flexDirection: "column",
-    backgroundColor: "#000000",
-    paddingTop: 1,
-    paddingBottom: 50,
+  text: {
+    fontSize: 60,
+    fontWeight: "700",
+    color: "#ffffff",
   },
-  topContainer: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
+  text2: {
+    fontSize: 16,
+    color: "#cccccc",
+  },
+  button: {
+    justifyContent: "center",
+    alignItems: "center",
+    fontSize: 60,
   },
 });
 
