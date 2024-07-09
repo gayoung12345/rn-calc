@@ -5,7 +5,7 @@ import { StatusBar } from "expo-status-bar";
 
 const Index = () => {
   const { width: windowWidth } = useWindowDimensions();
-  const btnWidth = (windowWidth - 5) / 4; // 4칸 쓸 거라서 4로 나눔
+  const btnWidth = (windowWidth - 5) / 4;
 
   const [result, setResult] = useState<number>(0);
   const [formula, setFormula] = useState<string>("");
@@ -13,7 +13,8 @@ const Index = () => {
   const [operatorCheck, setOperatorCheck] = useState<boolean>(true);
 
   const Operators = {
-    CLEAR: "C",
+    ALLCLEAR: "C",
+    DEL: "DEL",
     PLUS: "+",
     MULTY: "*",
     DIVIDE: "/",
@@ -46,12 +47,12 @@ const Index = () => {
       setPointCheck(false);
     }
   };
-
   const delNum = () => {
     console.log("del");
     let str = String(formula).slice(0, -1);
+    formula.includes(".") ? setPointCheck(false) : setPointCheck(true); // 예외가 발생할 수 있음(소수연산)
     setFormula(str);
-    setPointCheck(true);
+    setOperatorCheck(true);
   };
 
   const allClear = () => {
@@ -141,13 +142,22 @@ const Index = () => {
                 buttonType={ButtonTypes.NUMBER}
                 buttonStyle={[
                   styles.button,
-                  { width: btnWidth * 2, height: btnWidth },
+                  { width: btnWidth, height: btnWidth },
                 ]}
               />
               <Button
                 title="."
                 onPress={() => getPoint(".")}
                 buttonType={ButtonTypes.NUMBER}
+                buttonStyle={[
+                  styles.button,
+                  { width: btnWidth, height: btnWidth },
+                ]}
+              />
+              <Button
+                title="="
+                onPress={calculate}
+                buttonType={ButtonTypes.OPERATOR}
                 buttonStyle={[
                   styles.button,
                   { width: btnWidth, height: btnWidth },
@@ -175,12 +185,21 @@ const Index = () => {
               ]}
             />
             <Button
-              title="="
-              onPress={calculate}
-              buttonType={ButtonTypes.OPERATOR}
+              title="("
+              onPress={() => getNumber("(")}
+              buttonType={ButtonTypes.NUMBER}
               buttonStyle={[
                 styles.button,
-                { width: btnWidth, height: btnWidth * 2 - 5 },
+                { width: btnWidth, height: btnWidth },
+              ]}
+            />
+            <Button
+              title=")"
+              onPress={() => getNumber(")")}
+              buttonType={ButtonTypes.NUMBER}
+              buttonStyle={[
+                styles.button,
+                { width: btnWidth, height: btnWidth },
               ]}
             />
           </View>
@@ -231,8 +250,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
   },
   rightArea: {
+    paddingRight: 1,
     flexDirection: "column",
-    justifyContent: "space-evenly",
   },
   numberArea: {
     flex: 1,
